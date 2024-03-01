@@ -66,5 +66,36 @@ export async function getUsers() {
   }
 }
 
+
+export async function fetchRandomPicks() {
+  const shuffleArray = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  };
+
+  try {
+    const { data, error } = await supabase
+      .from("bet_pool")
+      .select("id, home_team, away_team")
+      .order("id", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching picks:", error.message);
+      return []; // Return an empty array or handle the error as needed
+    } else {
+      const shuffledPicks = shuffleArray(data || []);
+      const randomPicks = shuffledPicks.slice(0, 3); // Select the first 3 picks
+      return randomPicks; // Return the shuffled and sliced picks array
+    }
+  } catch (error) {
+    console.error("Error:", error.message);
+    return []; // Return an empty array or handle the error as needed
+  }
+}
+
+
 console.log("supabase client initialized client:", supabase);
 export default supabase;

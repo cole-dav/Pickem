@@ -12,13 +12,7 @@ import {AppFontStyle} from '../utility/AppFontStyle';
 import {AppImages} from '../utility/AppImages';
 import { AppColors } from '../utility/AppColors';
 import { fetchRivals,getUsers } from '../supabaseClient';
-
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  "https://aohggynmsqurtpszrgin.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvaGdneW5tc3F1cnRwc3pyZ2luIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTM1MDMyMzUsImV4cCI6MjAwOTA3OTIzNX0.wj2GWnQ6vsoph6Vs17GgLuBuuMt2tctCN9r1kIUCST4"
-);
+import supabase from '../supabaseClient';
 
 const History = () => {
   const [head2Head, setHead2Head] = useState(true);
@@ -58,27 +52,27 @@ const History = () => {
     },
   ]);
 
-  useEffect(() => {
-    const fetchAndSetRivals = async () => {
-      try {
-        const userId = 'eeww';
-        const { data, error } = await supabase
-        .from('pre_rivals')
-        .select('*')
-        // .or(`player_a.eq.${userId},player_b.eq.${userId}`);
-        .eq("player_a", userId);
+  // useEffect(() => {
+  //   const fetchAndSetRivals = async () => {
+  //     try {
+  //       const userId = 'eeww';
+  //       const { data, error } = await supabase
+  //       .from('pre_rivals')
+  //       .select('*')
+  //       // .or(`player_a.eq.${userId},player_b.eq.${userId}`);
+  //       .eq("player_a", userId);
 
-        if (error) {
-          console.error('Error fetching rivals:', error);
-          return [];
-        }
+  //       if (error) {
+  //         console.error('Error fetching rivals:', error);
+  //         return [];
+  //       }
 
-      } catch (error) {
-        console.error("Error:", error.message);
-      }
-    }
-    fetchAndSetRivals();
-  }, []);
+  //     } catch (error) {
+  //       console.error("Error:", error.message);
+  //     }
+  //   }
+  //   fetchAndSetRivals();
+  // }, []);
   
 
   return (

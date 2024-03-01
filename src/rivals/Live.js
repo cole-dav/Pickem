@@ -8,55 +8,32 @@ import {
   Alert,
 } from "react-native";
 import { Card, Title, Paragraph } from "react-native-paper";
-// import { supabase } from "../supabaseClient";
+import { supabase, fetchRandomPicks } from "../supabaseClient";
 
-import { createClient } from "@supabase/supabase-js";
+// import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  "https://aohggynmsqurtpszrgin.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvaGdneW5tc3F1cnRwc3pyZ2luIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTM1MDMyMzUsImV4cCI6MjAwOTA3OTIzNX0.wj2GWnQ6vsoph6Vs17GgLuBuuMt2tctCN9r1kIUCST4"
-);
+// const supabase = createClient(
+//   "https://aohggynmsqurtpszrgin.supabase.co",
+//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvaGdneW5tc3F1cnRwc3pyZ2luIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTM1MDMyMzUsImV4cCI6MjAwOTA3OTIzNX0.wj2GWnQ6vsoph6Vs17GgLuBuuMt2tctCN9r1kIUCST4"
+// );
 
 const Live = () => {
   const [picks, setPicks] = useState([]);
-  // const [choice, setChoice] = useState([]);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isModalVisible, setModalVisible] = useState(false);
   const [gameId, setGameId] = useState("");
 
   useEffect(() => {
-    const fetchRandomPicks = async () => {
-      try {
-        // Fetch 3 random rows from the bet_pool table
-        const { data, error } = await supabase
-          .from("bet_pool")
-          .select("id, home_team, away_team")
-          .order("id", { ascending: false });
-        // .range(0, 2); // Change the range to match the number of picks you want
-
-        if (error) {
-          console.error("Error fetching picks:", error.message);
-        } else {
-          const shuffledPicks = shuffleArray(data);
-
-          // Select the first 3 picks (or fewer if there are fewer than 3)
-          const randomPicks = shuffledPicks.slice(0, 3);
-
-          setPicks(randomPicks);
-        }
-      } catch (error) {
-        console.error("Error:", error.message);
+    const getPicks = async () => {
+      const { data, error } = await fetchRandomPicks();
+      if (error) {
+        console.error("Error fetching picks:", error.message);
+      } else {
+        setPicks(data);
       }
     };
 
-    const shuffleArray = (array) => {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    };
-    fetchRandomPicks();
+    getPicks();
   }, []);
 
   const handleResult = async (result, choice) => {
