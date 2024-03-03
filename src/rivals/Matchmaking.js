@@ -1,6 +1,7 @@
 import React, { useState , useEffect } from "react";
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { getUserID } from "../supabaseClient";
 
 const Matchmaking = ({ route }) => {
   const { game_id } = route.params;
@@ -27,6 +28,7 @@ const Matchmaking = ({ route }) => {
   };
   const openModal = () => setIsModalVisible(true);
   const closeModal = () => setIsModalVisible(false);
+  const user = getUserID();
 
   useEffect(() => {
     if (game_id != null) {
@@ -43,6 +45,7 @@ const Matchmaking = ({ route }) => {
       <Text style={[styles.titleText, { color: "#fff" }]}>
         Pick DFS props against your friends
       </Text>
+      <Text style={styles.titleText}>{user?.display_name || 'Welcome'}</Text>
       <View style={styles.row}>
         <TouchableOpacity onPress={openModal} style={styles.button}>
           <Text style={styles.titleText}>How to play</Text>

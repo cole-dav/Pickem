@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {Alert, StyleSheet, View} from 'react-native';
 import supabase from '../supabaseClient';
 import {Button, Input} from 'react-native-elements';
-import { useNavigation } from "@react-navigation/native";
 
 export default function Login() {
   const [email, setEmail] = useState('dev@gmail.com');
@@ -15,8 +14,6 @@ export default function Login() {
       email: email,
       password: password,
     });
-    navigation.navigate("History");
-    console.log("ho");
     if (error) Alert.alert(error.message);
     setLoading(false);
   }
@@ -27,7 +24,6 @@ export default function Login() {
       email: email,
       password: password,
     });
-    navigation.navigate("History");
     if (error) Alert.alert(error.message);
     setLoading(false);
   }
