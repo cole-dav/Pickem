@@ -16,6 +16,7 @@ export default function Login() {
       password: password,
     });
     navigation.navigate("History");
+    console.log("ho");
     if (error) Alert.alert(error.message);
     setLoading(false);
   }

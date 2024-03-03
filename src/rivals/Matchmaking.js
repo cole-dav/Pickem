@@ -1,26 +1,42 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState , useEffect } from "react";
+import { Modal, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
-const Matchmaking = () => {
+const Matchmaking = ({ route }) => {
+  const { game_id } = route.params;
   const navigation = useNavigation();
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
+  
   const goToLogin = () => {
     navigation.navigate("Login");
   };
 
   const goToFirstQueue = () => {
-    navigation.navigate("Login");
+    console.log("Navigating to First Queue...");
   };
 
   const goToHistoryScreen = () => {
-    navigation.navigate("History");
+    navigation.navigate('Live', { phone: '1234567890' });
   };
-
+  const goToGamesListScreen = () => {
+    navigation.navigate("GamesList");
+  };
   const goToLiveScreen = () => {
-    navigation.navigate("Live"); // Navigate to the "Live" screen
+    navigation.navigate("Live");
   };
+  const openModal = () => setIsModalVisible(true);
+  const closeModal = () => setIsModalVisible(false);
 
+  useEffect(() => {
+    if (game_id != null) {
+      console.log(game_id)
+      console.log("Valid Game ID exists, navigating to the game..."); // Create login screen thatll connect games
+      goToLiveScreen();
+    } else {
+      console.log("No valid game ID, staying on Matchmaking screen.");
+    }
+}, [game_id, navigation]);
   return (
     <View style={styles.container}>
       <Text style={[styles.titleText, { color: "#fff" }]}>Pitch</Text>
@@ -28,7 +44,7 @@ const Matchmaking = () => {
         Pick DFS props against your friends
       </Text>
       <View style={styles.row}>
-        <TouchableOpacity onPress={goToFirstQueue} style={styles.button}>
+        <TouchableOpacity onPress={openModal} style={styles.button}>
           <Text style={styles.titleText}>How to play</Text>
           {/* <Text style={styles.subText}>12/20 Games Remaining this Week</Text> */}
         </TouchableOpacity>
@@ -45,6 +61,31 @@ const Matchmaking = () => {
       <TouchableOpacity onPress={goToHistoryScreen} style={styles.button}>
         <Text style={styles.titleText}>History</Text>
       </TouchableOpacity>
+      <TouchableOpacity onPress={goToGamesListScreen} style={styles.button}>
+        <Text style={styles.titleText}>AlexTest</Text>
+      </TouchableOpacity>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
+              <Text>Back</Text>
+            </TouchableOpacity>
+            <Text style={styles.howToPlayText}>
+              Quick Guide:
+              {"\n\n"}- After clicking "Draft", select from 5 player props.
+              {"\n"}- Choose over or under for the projected total.
+              {"\n"}- Invite a rival. Draft order: you, rival, you, then rival picks twice.
+              {"\n"}- If you pick over, your rival gets under, and vice versa.
+              {"\n"}- Winners are decided after real-life results are in.
+            </Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -81,6 +122,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666", // Use your app's color scheme
     marginTop: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+  },
+  modalView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+  },
+  modalContent: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  closeButton: {
+    alignSelf: 'flex-end', // Positions the close button to the right
+  },
+  closeButtonText: {
+    // Styles for the close button text
+  },
+  howToPlayText: {
+    marginTop: 20, // Add some spacing between the close button and the text
+    // Styles for the how to play text
   },
 });
 

@@ -7,72 +7,43 @@ import {
   Button,
   Alert,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { Share } from 'react-native';
 import { Card, Title, Paragraph } from "react-native-paper";
-// import { supabase } from "../supabaseClient";
+import { supabase, fetchRandomPicks } from "../supabaseClient";
 
-import { createClient } from "@supabase/supabase-js";
+// import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  "https://aohggynmsqurtpszrgin.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvaGdneW5tc3F1cnRwc3pyZ2luIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTM1MDMyMzUsImV4cCI6MjAwOTA3OTIzNX0.wj2GWnQ6vsoph6Vs17GgLuBuuMt2tctCN9r1kIUCST4"
-);
+// const supabase = createClient(
+//   "https://aohggynmsqurtpszrgin.supabase.co",
+//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvaGdneW5tc3F1cnRwc3pyZ2luIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTM1MDMyMzUsImV4cCI6MjAwOTA3OTIzNX0.wj2GWnQ6vsoph6Vs17GgLuBuuMt2tctCN9r1kIUCST4"
+// );
 
-const Live =  () => {
-  const navigation = useNavigation();
+const Live = () => {
   const [picks, setPicks] = useState([]);
-  // const [choice, setChoice] = useState([]);
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [phoneNumberValidated, setPhoneNumberValidated] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
   const [gameId, setGameId] = useState("");
+
   useEffect(() => {
-    const fetchRandomPicks = async () => {
-      try {
-        // Fetch 3 random rows from the bet_pool table
-        const { data, error } = await supabase
-          .from("bet_pool")
-          .select("id, home_team, away_team")
-          .order("id", { ascending: false });
-        // .range(0, 2); // Change the range to match the number of picks you want
-
-        if (error) {
-          console.error("Error fetching picks:", error.message);
-        } else {
-          const shuffledPicks = shuffleArray(data);
-
-          // Select the first 3 picks (or fewer if there are fewer than 3)
-          const randomPicks = shuffledPicks.slice(0, 3);
-
-          setPicks(randomPicks);
-        }
-      } catch (error) {
-        console.error("Error:", error.message);
+    const getPicks = async () => {
+      const { data, error } = await fetchRandomPicks();
+      if (error) {
+        console.error("Error fetching picks:", error.message);
+      } else {
+        setPicks(data);
       }
     };
 
-    const shuffleArray = (array) => {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    };
-    fetchRandomPicks();
+    getPicks();
   }, []);
-  const validatePhoneNumber = (number) => {
-    // Example: Validate based on length and/or a regex pattern
-    return number.trim().length === 10; // Basic validation for example
-  };
+
   const handleResult = async (result, choice) => {
     const pickIndex = picks.findIndex((pick) => pick.id === choice);
-    
+
     // Package choice and result into a JSON array
     const resultData = {
       choice,
       result,
     };
-    console.log(resultData)
     const updatedPicks = [...picks];
     // Check if the item was found
     if (pickIndex !== -1) {
@@ -84,43 +55,42 @@ const Live =  () => {
       console.error(`Item with id ${id} not found in picks data.`);
     }
     // if session
-    console.log("ASDSAd")
-    await createNewGame(resultData, [updatedPicks]);
-    try {
-    const shareResponse = await Share.share({
-      message: 'Check out this game!', // Your message or game details to share
-      // You can also specify a URL, title, etc.
-    });
 
-    if (shareResponse.action === Share.sharedAction) {
-      console.log('Game details shared.');
-    } else if (shareResponse.action === Share.dismissedAction) {
-      console.log('Share dialog dismissed.');
-    }
-  } catch (error) {
-    console.error('Error sharing:', error.message);
-  }
-  navigation.navigate('Matchmaking');
+    await createNewGame(resultData, [updatedPicks]);
+    setModalVisible(true);
   };
 
-  const handleSubmitPhoneNumber = () => {
-    if (validatePhoneNumber(phoneNumber)) {
-      // If phone number is valid, update state and potentially perform other actions
-      setPhoneNumberValidated(true);
-      Alert.alert("Success", "Phone number accepted.");
+  const handleSubmitPhoneNumber = async () => {
+    //VALID NUM CHECK
+
+    if (phoneNumber.trim() !== "") {
+      if (gameId) {
+        const { data: updatedGame, error: updateGameError } = await supabase
+          .from("pre_rivals")
+          .update({ player_a: phoneNumber })
+          .eq("game_id", gameId);
+
+        if (updateGameError) {
+          console.error("Error updating player_a:", updateGameError.message);
+          return;
+        }
+
+        setModalVisible(false);
+      } else {
+        console.error("Cannot update player_a: gameId is not available.");
+      }
     } else {
-      // If validation fails, keep the input visible and inform the user
+      // Show an alert or handle empty phone number
       Alert.alert("Error", "Please enter a valid phone number.");
     }
   };
-
 
   const createNewGame = async (selectedPick, remainingPicks) => {
     try {
       // Update the picks_a column with the selected pick for the specified user
       const { data: newGame, error: createGameError } = await supabase
         .from("pre_rivals")
-        .insert([{player_a:phoneNumber, picks_a: selectedPick, un_picked: remainingPicks }])
+        .insert([{ picks_a: selectedPick, un_picked: remainingPicks }])
         .select();
 
       if (createGameError) {
@@ -132,20 +102,7 @@ const Live =  () => {
       console.error("Error:", error.message);
     }
   };
-  if (!phoneNumberValidated) {
-    return (
-      <View style={styles.container}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your phone number"
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-          keyboardType="phone-pad"
-        />
-        <Button title="Submit" onPress={handleSubmitPhoneNumber} />
-      </View>
-    );
-  } else {
+
   return (
     <View style={styles.container}>
       <View>
@@ -162,7 +119,7 @@ const Live =  () => {
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
                   style={[styles.button, styles.winButton]}
-                  onPress={() => handleResult("Win", pick.id)}
+                  onPress={() => handleResult("Win")}
                 >
                   <Title style={styles.buttonText}>Win</Title>
                 </TouchableOpacity>
@@ -178,10 +135,24 @@ const Live =  () => {
           </Card>
         ))}
       </View>
-      
+      {isModalVisible && (
+        <View style={styles.modalContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Phone Number"
+            onChangeText={(text) => setPhoneNumber(text)}
+            placeholderTextColor="#ccc" // Set placeholder text color
+          />
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: "#a1a" }]}
+            onPress={() => handleSubmitPhoneNumber()}
+          >
+            <Title style={styles.buttonText}>Submit</Title>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
-        }
 };
 
 export default Live;
@@ -215,7 +186,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#000000",
+    color: "#fff",
   },
   winButton: {
     backgroundColor: "#4CAF50", // Green color
@@ -226,11 +197,11 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#000000",
+    color: "#fff",
   },
   subText: {
     fontSize: 16,
-    color: "#000000",
+    color: "#fff",
     marginTop: 4,
   },
   modalContainer: {
@@ -243,7 +214,7 @@ const styles = StyleSheet.create({
     width: "80%",
     height: 40,
     backgroundColor: "#333", // Dark background for the text input
-    color: "#000000", // Text color
+    color: "#fff", // Text color
     paddingHorizontal: 10,
     marginBottom: 20,
     borderRadius: 5,
