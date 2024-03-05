@@ -1,12 +1,15 @@
 import React, {useState} from 'react';
 import {Alert, StyleSheet, View} from 'react-native';
+import { useNavigation } from "@react-navigation/native";
 import supabase from '../supabaseClient';
 import {Button, Input} from 'react-native-elements';
 
 export default function Login() {
   const [email, setEmail] = useState('dev@gmail.com');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('tester');
   const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
 
   async function signInWithEmail() {
     setLoading(true);
@@ -15,6 +18,7 @@ export default function Login() {
       password: password,
     });
     if (error) Alert.alert(error.message);
+    navigation.navigate("Matchmaking");
     setLoading(false);
   }
 
@@ -28,6 +32,21 @@ export default function Login() {
     setLoading(false);
   }
 
+  async function signUpWithPhone() {
+    const { data, error } = await supabase.auth.signUp({
+      phone: phone,
+      password: password,
+    })
+    if (error) Alert.alert(error.message);
+  }
+  async function signInWithPhone() {
+    const { user, error } = await supabase.auth.signInWithPassword({
+      phone: '+1'+phone,
+      password: password,
+    })
+  }
+  
+
   return (
     <View style={styles.container}>
       <View style={[styles.verticallySpaced, styles.mt20]}>
@@ -39,6 +58,15 @@ export default function Login() {
           autoCapitalize={'none'}
         />
       </View>
+      {/* <View style={[styles.verticallySpaced, styles.mt20]}>
+        <Input
+          label="Phone"
+          onChangeText={text => setPhone(text)}
+          value={phone}
+          placeholder="6789998212"
+          autoCapitalize={'none'}
+        />
+      </View> */}
       <View style={styles.verticallySpaced}>
         <Input
           label="Password"
