@@ -1,24 +1,19 @@
 import React, { useState , useEffect } from "react";
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { getUserID } from "../supabaseClient";
+import { getCurrentUserId } from "../supabaseClient";
 
 const Matchmaking = ({ route }) => {
   const { game_id } = route.params;
   const navigation = useNavigation();
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  
   const goToLogin = () => {
     navigation.navigate("Login");
   };
 
-  const goToFirstQueue = () => {
-    console.log("Navigating to First Queue...");
-  };
-
   const goToHistoryScreen = () => {
-    navigation.navigate('Live', { phone: '1234567890' });
+    navigation.navigate('Live', { phone: '6788962515' });
   };
   const goToGamesListScreen = () => {
     navigation.navigate("GamesList");
@@ -28,7 +23,18 @@ const Matchmaking = ({ route }) => {
   };
   const openModal = () => setIsModalVisible(true);
   const closeModal = () => setIsModalVisible(false);
-  const user = getUserID();
+
+  const [user, setUser] = useState(null); // Initialize user state
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await getCurrentUserId(); // Assuming this returns an ID or null
+      // Assuming there's another function or logic here to fetch user details by userId
+      setUser(fetchedUserDetails);
+      console.log(user);
+    };
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     if (game_id != null) {
@@ -45,7 +51,7 @@ const Matchmaking = ({ route }) => {
       <Text style={[styles.titleText, { color: "#fff" }]}>
         Pick DFS props against your friends
       </Text>
-      <Text style={styles.titleText}>{user?.display_name || 'Welcome'}</Text>
+      <Text style={styles.titleText}>{user || 'Welcome'}</Text>
       <View style={styles.row}>
         <TouchableOpacity onPress={openModal} style={styles.button}>
           <Text style={styles.titleText}>How to play</Text>
