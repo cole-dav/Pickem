@@ -1,13 +1,15 @@
 import React, {useState} from 'react';
 import {Alert, StyleSheet, View} from 'react-native';
+import { useNavigation } from "@react-navigation/native";
 import supabase from '../supabaseClient';
 import {Button, Input} from 'react-native-elements';
 
 export default function Login() {
   const [email, setEmail] = useState('dev@gmail.com');
-  const [phone, setPhone] = useState('6788962515');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('tester');
   const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
 
   async function signInWithEmail() {
     setLoading(true);
@@ -16,6 +18,7 @@ export default function Login() {
       password: password,
     });
     if (error) Alert.alert(error.message);
+    navigation.navigate("Matchmaking");
     setLoading(false);
   }
 

@@ -2,6 +2,7 @@ import React, { useState , useEffect } from "react";
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { getCurrentUserId } from "../supabaseClient";
+import supabase from "../supabaseClient";
 
 const Matchmaking = ({ route }) => {
   const { game_id } = route.params;
@@ -12,28 +13,30 @@ const Matchmaking = ({ route }) => {
     navigation.navigate("Login");
   };
 
-  const goToHistoryScreen = () => {
+  const goToLiveScreen = () => {
     navigation.navigate('Live', { phone: '6788962515' });
   };
   const goToGamesListScreen = () => {
     navigation.navigate("GamesList");
   };
-  const goToLiveScreen = () => {
-    navigation.navigate("Live");
+  const goToHistoryScreen = () => {
+    navigation.navigate("History");
   };
   const openModal = () => setIsModalVisible(true);
   const closeModal = () => setIsModalVisible(false);
 
-  const [user, setUser] = useState(null); // Initialize user state
-  useEffect(() => {
-    const fetchUser = async () => {
-      const user = await getCurrentUserId(); // Assuming this returns an ID or null
-      // Assuming there's another function or logic here to fetch user details by userId
-      setUser(fetchedUserDetails);
-      console.log(user);
-    };
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-    fetchUser();
+  useEffect(() => {
+    const { data, error } = supabase.auth.getSession();
+    setIsLoggedIn(!data);
+    const { data2: listener } = supabase.auth.onAuthStateChange((_event, data) => {
+      setIsLoggedIn(!!data);
+    });
+
+    return () => {
+      // listener.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -51,17 +54,17 @@ const Matchmaking = ({ route }) => {
       <Text style={[styles.titleText, { color: "#fff" }]}>
         Pick DFS props against your friends
       </Text>
-      <Text style={styles.titleText}>{user || 'Welcome'}</Text>
       <View style={styles.row}>
         <TouchableOpacity onPress={openModal} style={styles.button}>
           <Text style={styles.titleText}>How to play</Text>
           {/* <Text style={styles.subText}>12/20 Games Remaining this Week</Text> */}
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={goToLogin} style={styles.button}>
-          <Text style={styles.titleText}>Log in</Text>
-          {/* <Text style={styles.subText}>1 v 1 Rival Matches </Text> */}
-        </TouchableOpacity>
+        {!isLoggedIn && (
+          <TouchableOpacity onPress={goToLogin} style={styles.button}>
+            <Text style={styles.titleText}>Log in</Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity onPress={goToLiveScreen} style={styles.button}>
           <Text style={styles.titleText}>Play</Text>
